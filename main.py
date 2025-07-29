@@ -5,3 +5,4 @@ for x in range (10):
 
 print('SECOND')
 print("Что-то")
+print('XUJ')
