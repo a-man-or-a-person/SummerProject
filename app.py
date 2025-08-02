@@ -19,6 +19,7 @@ async def url_conv(url: LongUrl):
     }
 
 
+
 @app.get('/red/{red_id}', status_code=status.HTTP_200_OK)
 async def redirection(red_id: int):
     print(red_id)
