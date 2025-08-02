@@ -1,7 +1,8 @@
 import uvicorn
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
-from DB.main_db import add_link
+from test_db.orm import insert_link
+from Pydantic_dir.pydantic_valid_classes import LongUrl
 from Pydantic_dir.pydantic_valid_classes import LongUrl
 
 app = FastAPI()
@@ -13,10 +14,16 @@ async def ping():
 
 
 @app.post('/get_short', status_code=status.HTTP_201_CREATED)
-async def url_conv(url: LongUrl):
-    return {
-        'Done': 'ok'
-    }
+async def url_conv(user_url: LongUrl):
+    try:
+        short_link_id = await insert_link(user_url)
+        short_link = f'https://localhost:8003/red/{short_link_id}'
+        return short_link
+    except Exception as e:
+        print(e)
+        return {
+            'Error': e
+        }
 
 
 
