@@ -1,9 +1,8 @@
 import uvicorn
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
-from test_db.orm import insert_link
-from Pydantic_dir.pydantic_valid_classes import LongUrl
-from Pydantic_dir.pydantic_valid_classes import LongUrl
+from test_db.orm import insert_link, get_long_link
+from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
 
 app = FastAPI()
 
@@ -26,11 +25,11 @@ async def url_conv(user_url: LongUrl):
         }
 
 
-
-@app.get('/red/{red_id}', status_code=status.HTTP_200_OK)
+@app.get('/red/{red_id}')
 async def redirection(red_id: int):
-    print(red_id)
-    return RedirectResponse(url='/docs', status_code=status.HTTP_302_FOUND)
+    red_id = ShortLinkId(id=red_id)
+    link = await get_long_link(red_id)
+    return RedirectResponse(url=str(link.url), status_code=status.HTTP_302_FOUND)
 
 
 if __name__ == "__main__":
