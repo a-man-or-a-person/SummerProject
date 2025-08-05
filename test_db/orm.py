@@ -1,7 +1,9 @@
-from test_db.database import Base, async_session_factory, async_engine
-from test_db.models import LinkStorage
-from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
 from sqlalchemy import select
+
+from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
+from Redis.redis_main import redis_get_link, redis_insert_link
+from test_db.database import Base, async_engine, async_session_factory
+from test_db.models import LinkStorage
 
 
 async def drop_tables():
@@ -14,7 +16,6 @@ async def drop_tables():
 
 async def insert_link(long_link_u=LongUrl) -> int:
     async with async_session_factory() as session:
-        print('LINK:', long_link_u.url)
         link = LinkStorage(long_link=str(long_link_u.url))
         session.add(link)
         await session.flush()
@@ -23,7 +24,7 @@ async def insert_link(long_link_u=LongUrl) -> int:
         return gen_link_id
 
 
-async def get_long_link(link_id=ShortLinkId) -> LongUrl:
+async def get_long_link_db(link_id=ShortLinkId) -> LongUrl:
     async with async_session_factory() as session:
         query = select(LinkStorage.long_link).where(LinkStorage.id.is_(link_id.id))
         long_link = await session.execute(query)
