@@ -4,6 +4,7 @@ import pathlib
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from Pydantic_dir.pydantic_valid_classes import settings
 
 load_dotenv()
 if os.getenv("POSTG"):
@@ -15,7 +16,7 @@ else:
 
     # Use string representation of path with forward slashes
     async_engine = create_async_engine(
-        url=f"sqlite+aiosqlite:///{db_path.as_posix()}", echo=False
+        url=f"sqlite+aiosqlite:///{db_path.as_posix()}", echo=(settings.test_mode == 'True')
     )
 
 async_session_factory = async_sessionmaker(async_engine)

@@ -14,19 +14,16 @@ async def drop_tables():
         await conn.commit()
 
 
-async def insert_link(long_link_u=LongUrl) -> int:
+async def insert_link(long_link_u: LongUrl, short_link_id: str) -> None:
     async with async_session_factory() as session:
-        link = LinkStorage(long_link=str(long_link_u.url))
+        link = LinkStorage(long_link=str(long_link_u.url), short_link_id=short_link_id)
         session.add(link)
-        await session.flush()
-        gen_link_id = link.id
         await session.commit()
-        return gen_link_id
 
 
-async def get_long_link_db(link_id=ShortLinkId) -> LongUrl:
+async def get_long_link_db(link_id: ShortLinkId) -> LongUrl:
     async with async_session_factory() as session:
-        query = select(LinkStorage.long_link).where(LinkStorage.id.is_(link_id.id))
+        query = select(LinkStorage.long_link).where(LinkStorage.short_link_id.is_(link_id.id))
         long_link = await session.execute(query)
         long_link = long_link.scalar_one()
         long_link = LongUrl(url=long_link)
