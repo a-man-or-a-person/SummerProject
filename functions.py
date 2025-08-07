@@ -1,10 +1,10 @@
 import hashlib
 
 import base62
+from DB.orm import get_long_link_db, insert_link
 
 from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId, settings
 from Redis.redis_main import redis_get_link, redis_insert_link
-from DB.orm import get_long_link_db, insert_link
 
 
 async def gen_short_id(url: LongUrl, length=settings.short_id_length) -> str:

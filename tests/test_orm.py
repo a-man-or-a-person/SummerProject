@@ -1,10 +1,11 @@
 # tests/test_orm.py
 import pytest
-from DB.orm import insert_link, get_long_link_db
-from DB.models import LinkStorage
 from DB.database import Base, async_engine, async_session_factory
-from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
+from DB.models import LinkStorage
+from DB.orm import get_long_link_db, insert_link
 from sqlalchemy import select
+
+from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
 
 
 @pytest.mark.asyncio

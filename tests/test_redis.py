@@ -1,7 +1,8 @@
 # tests/test_redis.py
 import pytest
-from Redis.redis_main import redis_insert_link, redis_get_link
+
 from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
+from Redis.redis_main import redis_get_link, redis_insert_link
 
 
 @pytest.mark.asyncio

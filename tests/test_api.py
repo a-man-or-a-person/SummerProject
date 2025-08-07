@@ -1,5 +1,6 @@
 # tests/test_api.py
 from fastapi.testclient import TestClient
+
 from app import app
 from Pydantic_dir.pydantic_valid_classes import LongUrl
 
@@ -13,20 +14,14 @@ def test_ping_endpoint():
 
 
 def test_create_short_url_valid():
-    response = client.post(
-        "/get_short",
-        json={"url": "https://example.com"}
-    )
+    response = client.post("/get_short", json={"url": "https://example.com"})
     assert response.status_code == 201
     assert "short_url" in response.json()
     assert response.json()["short_url"].startswith("https://localhost:8003/red/")
 
 
 def test_create_short_url_invalid():
-    response = client.post(
-        "/get_short",
-        json={"url": "not_a_url"}
-    )
+    response = client.post("/get_short", json={"url": "not_a_url"})
     assert response.status_code == 400
     assert "error" in response.json()
 
