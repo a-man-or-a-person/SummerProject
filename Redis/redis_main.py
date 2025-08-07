@@ -11,7 +11,9 @@ redis_pool = ConnectionPool(
 
 async def redis_insert_link(url: LongUrl, short_id: str):
     async with Redis(connection_pool=redis_pool) as r:
-        await r.setex(f"{short_id}", int(settings.exp_time), f"{str(url.url)}")
+        link_exists = await r.exists(f"{short_id}")
+        if link_exists == 0:
+            await r.setex(f"{short_id}", int(settings.exp_time), f"{str(url.url)}")
 
 
 async def redis_get_link(short_id: ShortLinkId) -> LongUrl:

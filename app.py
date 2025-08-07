@@ -1,5 +1,3 @@
-import os
-
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, status
@@ -43,8 +41,14 @@ async def ping():
     status_code=status.HTTP_201_CREATED,
     response_model=ShortLinkResponse,
     responses={
-        400: {"model": ErrorResponse, "description": "Bad Request"},
-        500: {"model": ErrorResponse, "description": "Internal Server Error"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ErrorResponse,
+            "description": "Bad Request",
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "model": ErrorResponse,
+            "description": "Internal Server Error",
+        },
     },
 )
 async def url_conv(user_url: LongUrl):
