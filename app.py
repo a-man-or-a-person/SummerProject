@@ -2,17 +2,35 @@ import os
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, status
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
+from pydantic import BaseModel
 
 from functions import convert_long_link, get_long_link
 from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId, settings
-from Redis.redis_main import redis_get_link, redis_insert_link
 
-from test_db.orm import drop_tables
+
+# Добавьте эти модели
+class ShortLinkResponse(BaseModel):
+    short_url: str
+
+
+class ErrorResponse(BaseModel):
+    error: str
+
 
 load_dotenv()
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Для разработки, в проде укажите домен фронтенда
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/ping", status_code=status.HTTP_200_OK)
@@ -20,16 +38,30 @@ async def ping():
     return {"Ping": "ok"}
 
 
-@app.post("/get_short", status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/get_short",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ShortLinkResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "Bad Request"},
+        500: {"model": ErrorResponse, "description": "Internal Server Error"},
+    },
+)
 async def url_conv(user_url: LongUrl):
     try:
         short_link_id = await convert_long_link(user_url)
-        short_link = f"https://localhost:8003/red/{short_link_id}"
-        print(short_link)
-        return short_link
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={"short_url": f"http://localhost:8003/red/{short_link_id}"},
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        print(e)
-        return {"Error": e}
+        print(f"Server error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
 
 
 @app.get("/red/{red_id}")

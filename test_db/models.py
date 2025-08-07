@@ -7,7 +7,9 @@ from test_db.database import Base
 class LinkStorage(Base):
     __tablename__ = "links"
 
-    short_link_id: Mapped[str] = mapped_column(primary_key=True, unique=True, autoincrement=False)
+    short_link_id: Mapped[str] = mapped_column(
+        primary_key=True, unique=True, autoincrement=False
+    )
     long_link: Mapped[str]
     created_at = Column(
         DateTime,

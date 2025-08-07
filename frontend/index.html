@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener Pro</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .attribution {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .attribution a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .attribution a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-link"></i> URL Shortener</h1>
+
+        <div class="form-group">
+            <input type="url" id="longUrl" placeholder="https://example.com" required>
+            <button id="shortenBtn">
+                <i class="fas fa-scissors"></i> Shorten URL
+            </button>
+        </div>
+
+        <div id="loader" class="loader"></div>
+
+        <div id="result" class="hidden">
+            <p>Your short URL:</p>
+            <a id="shortUrl" href="#" target="_blank"></a>
+            <button id="copyBtn">
+                <i class="far fa-copy"></i> Copy to Clipboard
+            </button>
+        </div>
+
+        <div id="error" class="hidden"></div>
+
+        <div class="attribution">
+            <p>Made with <i class="fas fa-heart" style="color: #e74c3c;"></i> | URL Shortener Service</p>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -23,7 +23,9 @@ async def insert_link(long_link_u: LongUrl, short_link_id: str) -> None:
 
 async def get_long_link_db(link_id: ShortLinkId) -> LongUrl:
     async with async_session_factory() as session:
-        query = select(LinkStorage.long_link).where(LinkStorage.short_link_id.is_(link_id.id))
+        query = select(LinkStorage.long_link).where(
+            LinkStorage.short_link_id.is_(link_id.id)
+        )
         long_link = await session.execute(query)
         long_link = long_link.scalar_one()
         long_link = LongUrl(url=long_link)
