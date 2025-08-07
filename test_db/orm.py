@@ -2,8 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
-from test_db.database import Base, async_engine, async_session_factory
-from test_db.models import LinkStorage
+from DB.database import Base, async_engine, async_session_factory
+from DB.models import LinkStorage
 
 
 async def drop_tables():

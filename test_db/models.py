@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from test_db.database import Base
+from DB.database import Base
 
 
 class LinkStorage(Base):
