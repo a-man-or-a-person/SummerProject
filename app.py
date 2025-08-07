@@ -39,7 +39,7 @@ async def ping():
 
 
 @app.post(
-    "/get_short",
+    path="/get_short",
     status_code=status.HTTP_201_CREATED,
     response_model=ShortLinkResponse,
     responses={
@@ -64,7 +64,7 @@ async def url_conv(user_url: LongUrl):
         )
 
 
-@app.get("/red/{red_id}")
+@app.get(path="/red/{red_id}")
 async def redirection(red_id: str):
     red_id = ShortLinkId(id=red_id)
     link = await get_long_link(red_id)
