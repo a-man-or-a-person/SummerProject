@@ -1,7 +1,8 @@
 import asyncio
 
+from DB.orm import drop_tables, get_long_link, insert_link
+
 from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
-from test_db.orm import drop_tables, get_long_link, insert_link
 
 
 async def main():

@@ -1,9 +1,9 @@
+from DB.database import Base, async_engine, async_session_factory
+from DB.models import LinkStorage
+from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from Pydantic_dir.pydantic_valid_classes import LongUrl, ShortLinkId
-from Redis.redis_main import redis_get_link, redis_insert_link
-from test_db.database import Base, async_engine, async_session_factory
-from test_db.models import LinkStorage
 
 
 async def drop_tables():
@@ -14,11 +14,17 @@ async def drop_tables():
         await conn.commit()
 
 
-async def insert_link(long_link_u: LongUrl, short_link_id: str) -> None:
-    async with async_session_factory() as session:
-        link = LinkStorage(long_link=str(long_link_u.url), short_link_id=short_link_id)
-        session.add(link)
-        await session.commit()
+async def insert_link(long_link_u: LongUrl, short_link_id: str) -> dict:
+    try:
+        async with async_session_factory() as session:
+            link = LinkStorage(
+                long_link=str(long_link_u.url), short_link_id=short_link_id
+            )
+            session.add(link)
+            await session.commit()
+        return {"OK": True}
+    except Exception as e:
+        return {"OK": False, "details": e}
 
 
 async def get_long_link_db(link_id: ShortLinkId) -> LongUrl:
