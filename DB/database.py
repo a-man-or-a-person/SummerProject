@@ -12,7 +12,7 @@ if os.getenv("POSTG"):
     print("POSTGRES DB")
 else:
     # Create absolute path and ensure directory exists
-    db_path = pathlib.Path("test_db/links.db").absolute()
+    db_path = pathlib.Path("DB/links.db").absolute()
     db_path.parent.mkdir(parents=True, exist_ok=True)  # Create directory
 
     # Use string representation of path with forward slashes

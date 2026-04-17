@@ -36,3 +36,5 @@ async def get_long_link_db(link_id: ShortLinkId) -> LongUrl:
         long_link = long_link.scalar_one()
         long_link = LongUrl(url=long_link)
         return long_link
+
+
