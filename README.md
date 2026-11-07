@@ -1,65 +1,60 @@
-# URL Shortener Service
+# URL shortener prototype
 
-## Project Overview
-A URL Shortener service that converts long URLs into short, manageable links. Built using FastAPI, Redis, and SQLAlchemy, this service enables efficient storing and retrieval of shortened URLs.
+A Python backend learning project with FastAPI, Redis and asynchronous SQLAlchemy.
 
-## Features
-- URL shortening
-- Custom aliases for shortened URLs
-- Expiration date for links
-- URL redirection
-- Statistics for shortened URLs (e.g., number of hits)
+## Current scope
 
-## Technology Stack
-- **Backend**: FastAPI
-- **Database**: SQLAlchemy with a relational database (e.g., PostgreSQL)
-- **Cache**: Redis for fast URL retrieval
-- **Testing**: Pytest
-- **Deployment**: Docker for containerization
+The source implements URL validation, deterministic SHA-256/Base62 identifiers, a create-link endpoint, a redirect endpoint and Redis caching.
+Redis cache entries expire; durable database links do not have implemented expiration.
+Custom aliases, hit statistics and Docker deployment are not implemented in this tree.
 
-## Project Structure
-```
-url_shortener/
-│
-├── app/
-│   ├── main.py         # Entry point
-│   ├── models.py       # Database models
-│   ├── routers.py      # API routes
-│   ├── services.py     # Business logic
-│   ├── db.py          # Database connection
-│   └── cache.py       # Redis cache integration
-│
-├── tests/              # Test cases
-├── Dockerfile           # Dockerfile for building the image
-├── requirements.txt     # Python package dependencies
-└── README.md           # Project documentation
+## Repository layout
+
+- `app.py`: FastAPI routes.
+- `functions.py`: identifier generation and cache/database coordination.
+- `Pydantic_dir/`: request and settings models.
+- `Redis/`: cache integration.
+- `test_db/`: database modules and a committed SQLite file.
+- `frontend/`: static browser UI.
+- `tests/`: API, function, database and cache test drafts.
+- `.github/workflows/hello_test.yml`: existing test workflow.
+
+## Installation and current blocker
+
+Create and activate a Python virtual environment, then install the actual dependency file:
+
+```sh
+python -m pip install -r requirements
 ```
 
-## Installation Instructions
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/a-man-or-a-person/SummerProject.git
-   cd SummerProject
-   ```
-2. Create a virtual environment and activate it:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Set up the database and cache as per your local environment.
+**The default branch is currently not runnable as a clean checkout:** imports refer to a `DB` package, but the database directory is named `test_db`.
+Resolve these imports consistently before using the intended command:
 
-## Environment Variables Configuration
-- `DATABASE_URL`: Database connection string (e.g., PostgreSQL)
-- `REDIS_URL`: URL for the Redis cache
-- `SHORT_URL_DOMAIN`: Domain to use for the shortened URLs
-- `SECRET_KEY`: Secret key for signing tokens (ensure it is kept confidential).
-
-## Running the Application
-Run the following command to start the service:
-```bash
-uvicorn app.main:app --reload
+```sh
+python -m uvicorn app:app --host localhost --port 8003
 ```
+
+Redis is expected on localhost:6379. The frontend and generated short URLs use localhost:8003.
+PostgreSQL initialization is incomplete; setting `POSTG` does not create an engine.
+
+## Settings actually read
+
+`Pydantic_dir/pydantic_valid_classes.py` reads these from the environment or a local `.env`:
+
+- `EXP_TIME`: Redis TTL in seconds (default 3600).
+- `TEST_MODE`: changes redirect output (default false).
+- `SHORT_ID_LENGTH`: requested identifier truncation length (default 7).
+
+The implementation hashes only 32 bits before Base62 encoding; this does not guarantee seven characters or unique identifiers.
+
+## Tests and known issues
+
+The existing workflow runs `pytest -v tests/` with Redis and extra test dependencies.
+The latest reviewed default-branch run failed; this documentation change does not repair CI.
+
+Tests currently disagree with async function signatures, generated URL schemes, validation status codes and TEST_MODE redirect behavior.
+Database tests delete records through the configured session; do not point them at valuable data.
+Persistence errors are swallowed by the insert function and cache writes can proceed without durable storage.
+Committed database records have not been certified as safe fixtures.
+
+No Dockerfile, configurable public domain, custom aliases or hit statistics are claimed here.
