@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Показать ошибку
     function showError(message) {
-        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        errorDiv.textContent = message;
         errorDiv.classList.remove('hidden');
 
         // Автоскрытие через 5 секунд

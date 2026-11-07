@@ -1,60 +1,56 @@
-# URL shortener prototype
+![URL SHORTENER](docs/banner.svg)
 
-A Python backend learning project with FastAPI, Redis and asynchronous SQLAlchemy.
+# URL shortener
 
-## Current scope
+A small Python API for creating and resolving short links. FastAPI handles the HTTP contract, SQLite stores links, and Redis is an optional cache.
 
-The source implements URL validation, deterministic SHA-256/Base62 identifiers, a create-link endpoint, a redirect endpoint and Redis caching.
-Redis cache entries expire; durable database links do not have implemented expiration.
-Custom aliases, hit statistics and Docker deployment are not implemented in this tree.
-
-## Repository layout
-
-- `app.py`: FastAPI routes.
-- `functions.py`: identifier generation and cache/database coordination.
-- `Pydantic_dir/`: request and settings models.
-- `Redis/`: cache integration.
-- `test_db/`: database modules and a committed SQLite file.
-- `frontend/`: static browser UI.
-- `tests/`: API, function, database and cache test drafts.
-- `.github/workflows/hello_test.yml`: existing test workflow.
-
-## Installation and current blocker
-
-Create and activate a Python virtual environment, then install the actual dependency file:
+## Run
 
 ```sh
 python -m pip install -r requirements
-```
-
-**The default branch is currently not runnable as a clean checkout:** imports refer to a `DB` package, but the database directory is named `test_db`.
-Resolve these imports consistently before using the intended command:
-
-```sh
 python -m uvicorn app:app --host localhost --port 8003
 ```
 
-Redis is expected on localhost:6379. The frontend and generated short URLs use localhost:8003.
-PostgreSQL initialization is incomplete; setting `POSTG` does not create an engine.
+Open http://localhost:8003/docs for the interactive API. The static UI in `frontend/` expects the API on this port.
+Startup creates missing database tables. Runtime data defaults to `.data/links.db`; the historical committed database is not loaded automatically.
 
-## Settings actually read
+```sh
+curl -X POST http://localhost:8003/get_short -H "Content-Type: application/json" -d '{"url":"https://example.com"}'
+```
 
-`Pydantic_dir/pydantic_valid_classes.py` reads these from the environment or a local `.env`:
+The response contains `short_url`. Visiting it redirects to the original URL. Invalid input returns 422, an unknown identifier returns 404, and a hash collision returns 409 without replacing the original destination.
 
-- `EXP_TIME`: Redis TTL in seconds (default 3600).
-- `TEST_MODE`: changes redirect output (default false).
-- `SHORT_ID_LENGTH`: requested identifier truncation length (default 7).
+## Design
 
-The implementation hashes only 32 bits before Base62 encoding; this does not guarantee seven characters or unique identifiers.
+```mermaid
+flowchart LR
+    Client --> FastAPI
+    FastAPI --> SQLite
+    FastAPI --> Redis
+```
 
-## Tests and known issues
+The database write happens before the cache write. Redis failure falls back to the database. Repeated creation of the same URL is idempotent; a conflicting destination cannot overwrite an existing identifier.
 
-The existing workflow runs `pytest -v tests/` with Redis and extra test dependencies.
-The latest reviewed default-branch run failed; this documentation change does not repair CI.
+## Configuration
 
-Tests currently disagree with async function signatures, generated URL schemes, validation status codes and TEST_MODE redirect behavior.
-Database tests delete records through the configured session; do not point them at valuable data.
-Persistence errors are swallowed by the insert function and cache writes can proceed without durable storage.
-Committed database records have not been certified as safe fixtures.
+Use environment variables or a local `.env`:
 
-No Dockerfile, configurable public domain, custom aliases or hit statistics are claimed here.
+- `DATABASE_URL`: async SQLAlchemy URL; default `sqlite+aiosqlite:///.data/links.db`.
+- `REDIS_URL`: default `redis://localhost:6379/0`.
+- `EXP_TIME`: cache TTL in seconds, default 3600; this does not expire stored links.
+- `SHORT_ID_LENGTH`: 1–32, default 7. Identifiers are deterministic truncated hashes, not access-control tokens.
+
+Existing databases are not migrated automatically. Back up a database before explicitly selecting it.
+
+## Validation
+
+```sh
+python -m pip install pytest-asyncio==1.2.0 httpx==0.28.1
+python -m pytest -q tests
+```
+
+Tests use a temporary SQLite file and mocked cache/network boundaries. They cover the HTTP round trip, invalid input, repeated and concurrent writes, identifier conflicts, persistence failure and cache outages. No working database is cleared by the test suite.
+
+## Scope and limitations
+
+This is a local learning service. It has no public-service abuse controls, user authentication, custom aliases, hit statistics or Docker deployment. Only the SQLite configuration is exercised by the tests. Redis behavior is checked at its client boundary; a live Redis integration test is not included.
