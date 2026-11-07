@@ -1,6 +1,8 @@
+from contextlib import asynccontextmanager
+from test_db.orm import create_tables
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
 from pydantic import BaseModel
@@ -19,13 +21,19 @@ class ErrorResponse(BaseModel):
 
 
 load_dotenv()
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app):
+    await create_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Для разработки, в проде укажите домен фронтенда
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -51,13 +59,15 @@ async def ping():
         },
     },
 )
-async def url_conv(user_url: LongUrl):
+async def url_conv(user_url: LongUrl, request: Request):
     try:
         short_link_id = await convert_long_link(user_url)
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            content={"short_url": f"http://localhost:8003/red/{short_link_id}"},
+            content={"short_url": str(request.url_for("redirection", red_id=short_link_id))},
         )
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -72,10 +82,7 @@ async def url_conv(user_url: LongUrl):
 async def redirection(red_id: str):
     red_id = ShortLinkId(id=red_id)
     link = await get_long_link(red_id)
-    if settings.test_mode:
-        return str(link.url)
-    else:
-        return RedirectResponse(url=str(link.url), status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(url=str(link.url), status_code=status.HTTP_302_FOUND)
 
 
 if __name__ == "__main__":
